@@ -446,7 +446,10 @@ def get_times():
     while start <= end:
 
         t = start.strftime("%H:%M")
-        current_dt = datetime.strptime(date + " " + t, "%Y-%m-%d %H:%M")
+        current_dt = datetime.strptime(
+            date + " " + t,
+            "%Y-%m-%d %H:%M"
+        ).replace(tzinfo=JST)
 
         # ①予約済みチェック
         if t in reserved:
@@ -511,7 +514,7 @@ def create_confirm():
     target_dt = datetime.strptime(
         data['date'] + " " + data['time'][:5],
         "%Y-%m-%d %H:%M"
-    )
+    ).replace(tzinfo=JST)
 
     # ★ここが本質（今から24時間）
     limit_time = datetime.now(JST) + timedelta(hours=24)
@@ -607,7 +610,6 @@ def edit_save():
         "変更",
         datetime.now(JST).strftime("%Y-%m-%d %H:%M:%S")
     ))
-    session['created_at'] = datetime.now(JST)
 
     conn.commit()
     conn.close()
