@@ -177,7 +177,11 @@ button {
         target.setMinutes(m);
         target.setSeconds(0);
 
-        return target < limit; // trueならNG
+        // ★ここ修正（毎回nowを作る）
+        let now = new Date();
+        let limit = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+        return target < limit;
     }
 
 
@@ -333,7 +337,7 @@ button {
         // ★24時間後より前の時間しかない場合
         let valid = times.filter(t => !isBeforeLimit(selected, t));
 
-        if(valid.length === 0){
+        if(times.length === 0){
             alert("この日は予約できません。");
             return;
         }
