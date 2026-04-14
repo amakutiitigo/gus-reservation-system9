@@ -5,6 +5,9 @@ import io
 import os
 from openpyxl import Workbook
 
+from datetime import timezone
+JST = timezone(timedelta(hours=9))
+
 app = Flask(__name__)
 
 app.secret_key = "supersecretkey"
@@ -432,7 +435,7 @@ def get_times():
     conn.close()
 
     # ★ここが本質（今から24時間）
-    limit_time = datetime.now() + timedelta(hours=24)
+    limit_time = datetime.now(JST) + timedelta(hours=24)
 
     # ④時間生成
     slots = []
@@ -511,7 +514,7 @@ def create_confirm():
     )
 
     # ★ここが本質（今から24時間）
-    limit_time = datetime.now() + timedelta(hours=24)
+    limit_time = datetime.now(JST) + timedelta(hours=24)
 
     if target_dt < limit_time:
         return "24時間後以降の予約しかできません"
@@ -532,7 +535,7 @@ def create_confirm():
         data['phone'],
         data['address'],
         "新規",
-        datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        datetime.now(JST).strftime("%Y-%m-%d %H:%M:%S")
     ))
 
     conn.commit()
@@ -602,9 +605,9 @@ def edit_save():
         data['phone'],
         data['address'],
         "変更",
-        datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        datetime.now(JST).strftime("%Y-%m-%d %H:%M:%S")
     ))
-    session['created_at'] = datetime.now()
+    session['created_at'] = datetime.now(JST)
 
     conn.commit()
     conn.close()
@@ -680,7 +683,7 @@ def delete_post():
         phone,
         address,
         "削除",
-        datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        datetime.now(JST).strftime("%Y-%m-%d %H:%M:%S")
     ))
 
     conn.commit()
