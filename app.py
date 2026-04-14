@@ -476,9 +476,9 @@ def get_times():
             continue
 
         # ★③24時間ルール（ここだけ）
-        if current_dt < limit_time:
-            start += timedelta(minutes=30)
-            continue
+        # if current_dt < limit_time:
+        #     start += timedelta(minutes=30)
+        #     continue
 
         # OK
         slots.append(t)
