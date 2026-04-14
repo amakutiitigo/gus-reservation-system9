@@ -1,0 +1,64 @@
+/* 全体 */
+body {
+    font-family: Arial;
+    margin: 0;
+    padding: 10px;
+}
+
+/* コンテナ */
+.container {
+    max-width: 1000px;
+    margin: auto;
+}
+
+/* 入力 */
+input, select, button {
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+    font-size: 16px;
+}
+
+/* ボタン */
+button {
+    background: #4CAF50;
+    color: white;
+    border: none;
+}
+
+/* テーブル */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    border: 1px solid #ccc;
+    padding: 8px;
+}
+
+/* スマホ対応 */
+@media (max-width: 600px) {
+
+    table, thead, tbody, th, td, tr {
+        display: block;
+    }
+
+    tr {
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+    }
+
+    td {
+        text-align: left;
+        padding-left: 50%;
+        position: relative;
+    }
+
+    td::before {
+        position: absolute;
+        left: 10px;
+        top: 8px;
+        font-weight: bold;
+    }
+}

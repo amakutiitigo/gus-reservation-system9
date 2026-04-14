@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>ウェブ予約管理メニュー</title>
+
+<style>
+body {
+    font-family: sans-serif;
+    text-align: center;
+    padding-top: 50px;
+}
+
+button {
+    width: 250px;
+    padding: 15px;
+    margin: 15px;
+    font-size: 18px;
+    border: none;
+    border-radius: 8px;
+    background: #2196F3;
+    color: white;
+}
+</style>
+</head>
+
+<body>
+
+<h2>紀北保安センター ウェブ予約管理メニュー</h2>
+
+<form action="/admin">
+    <button type="submit">予約一覧</button>
+</form>
+
+<form action="/admin_block">
+    <button type="submit">予約除外日設定</button>
+</form>
+
+<form action="/logout">
+    <button type="submit">ログアウト</button>
+</form>
+
+</body>
+</html>

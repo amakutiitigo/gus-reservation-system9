@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>削除済み一覧</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: #f5f6fa;
+}
+
+.container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    margin-top: 15px;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    font-size: 14px;
+}
+
+th {
+    background: #2c3e50;
+    color: white;
+}
+
+button {
+    padding: 8px 12px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>削除済み一覧</h2>
+
+<!-- ================= 検索 ================= -->
+<form method="GET" action="/admin_deleted">
+    予約日：
+    <input type="date" name="date_from" value="{{ request.args.get('date_from','') }}">
+    〜
+    <input type="date" name="date_to" value="{{ request.args.get('date_to','') }}">
+
+    氏名：
+    <input type="text" name="name" value="{{ request.args.get('name','') }}">
+
+    消費者コード：
+    <input type="text" name="code" value="{{ request.args.get('code','') }}">
+
+    <button type="submit">検索</button>
+
+    <button type="button" onclick="location.href='/admin_deleted'">
+        リセット
+    </button>
+</form>
+
+<!-- 戻る -->
+<form action="/admin">
+    <button type="submit">予約一覧へ戻る</button>
+</form>
+
+<hr>
+
+<!-- ================= 一括削除フォーム ================= -->
+<form method="POST" action="/admin_bulk_delete">
+
+<label>
+    <input type="checkbox" id="all"> 全選択
+</label>
+
+<table>
+
+<thead>
+<tr>
+    <th>選択</th>
+    <th>予約日</th>
+    <th>予約時間</th>
+    <th>消費者コード</th>
+    <th>氏名</th>
+    <th>住所</th>
+    <th>電話番号</th>
+    <th>状態</th>
+    <th>操作</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for r in reservations %}
+<tr>
+
+    <td>
+        <input type="checkbox" name="ids" value="{{ r[0] }}">
+    </td>
+
+    <td>{{ r[1] }}</td>
+    <td>{{ r[2] }}</td>
+    <td>{{ r[3] }}</td>
+    <td>{{ r[4] }}</td>
+    <td>{{ r[6] }}</td>
+    <td>{{ r[5] }}</td>
+    <td>{{ r[7] }}</td>
+
+    <td>
+        <button type="submit"
+                formaction="/admin_restore"
+                formmethod="POST"
+                name="id"
+                value="{{ r[0] }}">
+            復活
+        </button>
+    </td>
+
+</tr>
+{% endfor %}
+
+</tbody>
+
+</table>
+
+<button type="submit"
+        onclick="return confirm('選択したデータを完全削除しますか？');">
+    一括完全削除
+</button>
+
+</form>
+
+<!-- 全選択 -->
+<script>
+document.getElementById("all").addEventListener("change", function () {
+    let boxes = document.querySelectorAll("input[name='ids']");
+    boxes.forEach(b => b.checked = this.checked);
+});
+</script>
+
+</body>
+</html>

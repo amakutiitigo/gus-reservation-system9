@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ガス点検予約管理</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: #f5f6fa;
+}
+
+.container {
+    max-width: 1400px;
+    margin: auto;
+    padding: 20px;
+}
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    margin-top: 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+th, td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+    font-size: 14px;
+}
+
+th {
+    background: #2c3e50;
+    color: white;
+}
+
+tr:hover {
+    background: #f1f1f1;
+}
+
+.badge {
+    padding: 3px 8px;
+    border-radius: 6px;
+    color: white;
+    font-size: 12px;
+}
+
+.new { background: #3498db; }
+.edit { background: #f39c12; }
+.delete { background: #e74c3c; }
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="topbar">
+    <h2>ガス点検予約管理（一覧）</h2>
+    <div>
+        <a href="/export_excel">📥 Excel出力</a> |
+        <a href="/logout">ログアウト</a>
+    </div>
+</div>
+
+<form method="GET" action="/admin"
+      style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
+
+    <div>
+        <div style="font-size:12px;">消費者コード</div>
+        <input type="text" name="code" value="{{ request.args.get('code','') }}">
+    </div>
+
+    <div>
+        <div style="font-size:12px;">氏名</div>
+        <input type="text" name="name" value="{{ request.args.get('name','') }}">
+    </div>
+
+    <!-- 予約日 期間 -->
+    <div>
+        <div style="font-size:12px;">予約日（開始）</div>
+        <input type="date" name="date_from" value="{{ request.args.get('date_from','') }}">
+    </div>
+
+    <div>
+        <div style="font-size:12px;">予約日（終了）</div>
+        <input type="date" name="date_to" value="{{ request.args.get('date_to','') }}">
+    </div>
+
+    <!-- 申込日 期間 -->
+    <div>
+        <div style="font-size:12px;">申込日（開始）</div>
+        <input type="date" name="created_from" value="{{ request.args.get('created_from','') }}">
+    </div>
+
+    <div>
+        <div style="font-size:12px;">申込日（終了）</div>
+        <input type="date" name="created_to" value="{{ request.args.get('created_to','') }}">
+    </div>
+
+    <button type="submit">検索</button>
+
+    <a href="/admin">
+        <button type="button">リセット</button>
+    </a>
+
+</form>
+
+<form action="/admin_menu" method="get">
+    <button type="submit">メインメニューに戻る</button>
+</form>
+
+<form action="/admin_deleted" method="get">
+    <button type="submit">削除済み一覧</button>
+</form>
+
+<table>
+
+<thead>
+<tr>
+    <th>予約日</th>
+    <th>予約時間</th>
+    <th>申込日時</th>
+    <th>消費者コード</th>
+    <th>氏名</th>
+    <th>住所</th>
+    <th>電話</th>
+    <th>状態</th>
+    <th>操作</th>
+</tr>
+</thead>
+
+<tbody>
+
+    {% for r in reservations %}
+
+    <tr>
+        <td>{{ r[1] }}</td>
+        <td class="time">{{ r[2] }}</td>
+        <td>{{ r[8] }}</td>
+        <td>{{ r[3] }}</td>
+        <td>{{ r[4] }}</td>
+        <td>{{ r[6] }}</td>
+        <td>{{ r[5] }}</td>
+    
+        <td>
+            <span class="badge
+            {% if r[7]=='新規' %}new{% endif %}
+            {% if r[7]=='変更' %}edit{% endif %}
+            {% if r[7]=='削除' %}delete{% endif %}
+            ">
+            {{ r[7] }}
+            </span>
+        </td>
+    
+        <!-- ⭐ここ追加（削除ボタン） -->
+        <td>
+            <form method="POST" action="/admin_delete" onsubmit="return confirm('削除しますか？');">
+                <input type="hidden" name="id" value="{{ r[0] }}">
+                <button type="submit" style="background:red;color:white;">
+                    削除
+                </button>
+            </form>
+        </td>
+    
+    </tr>
+    
+    {% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+<script>
+    function formatRange(t){
+        if(!t) return "";
+    
+        // もし既に「～」があればそのまま
+        if(t.includes("～")) return t;
+    
+        let [h,m] = t.split(":").map(Number);
+    
+        let end = new Date();
+        end.setHours(h);
+        end.setMinutes(m + 30);
+    
+        let endH = end.getHours().toString().padStart(2,'0');
+        let endM = end.getMinutes().toString().padStart(2,'0');
+    
+        return `${t}～${endH}:${endM}`;
+    }
+    
+    document.querySelectorAll(".time").forEach(el=>{
+        el.innerText = formatRange(el.innerText);
+    });
+    </script>
+
+</body>
+
+</html>

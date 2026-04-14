@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>変更確認画面</title>
+</head>
+<body>
+
+<h2>この内容で変更しますか？</h2>
+
+<p>日付：{{ data.date }}</p>
+<p>時間：<span id="time_view"></span></p>
+<p>氏名：{{ data.name }}</p>
+<p>電話：{{ data.phone }}</p>
+<p>住所：{{ data.address }}</p>
+
+<form method="POST" action="/edit_save">
+    <input type="hidden" name="date" value="{{ data.date }}">
+    <input type="hidden" name="time" value="{{ data.time }}">
+    <input type="hidden" name="name" value="{{ data.name }}">
+    <input type="hidden" name="phone" value="{{ data.phone }}">
+    <input type="hidden" name="address" value="{{ data.address }}">
+
+    <button type="submit">はい、変更します</button>
+</form>
+
+<br>
+
+<form action="/edit">
+    <button type="submit">戻る</button>
+</form>
+
+<script>
+    function formatRange(t){
+    
+        if(!t || !t.includes(":")) return "";
+    
+        let [h,m] = t.split(":").map(Number);
+    
+        let end = new Date();
+        end.setHours(h);
+        end.setMinutes(m + 30);
+    
+        let eh = String(end.getHours()).padStart(2,'0');
+        let em = String(end.getMinutes()).padStart(2,'0');
+    
+        return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}～${eh}:${em}`;
+    }
+    
+    let time = "{{ data.time }}";
+    document.getElementById("time_view").innerText = formatRange(time);
+    
+    
+</script>
+
+</body>
+</html>

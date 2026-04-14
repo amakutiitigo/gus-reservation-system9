@@ -1,0 +1,29 @@
+<h2>予約ブロック管理</h2>
+
+<form method="POST" action="/add_block">
+    <input type="date" name="date" required>
+    <input type="time" name="start_time" required>
+    <input type="time" name="end_time" required>
+    <button type="submit">追加</button>
+</form>
+
+<form action="/admin_menu" method="get">
+    <button type="submit">メインメニューに戻る</button>
+</form>
+
+<hr>
+
+<table>
+<tr>
+<th>日付</th><th>開始</th><th>終了</th><th>操作</th>
+</tr>
+
+{% for b in blocks %}
+<tr>
+    <td>{{ b[1] }}</td>
+    <td>{{ b[2] }}</td>
+    <td>{{ b[3] }}</td>
+    <td><a href="/delete_block/{{ b[0] }}">削除</a></td>
+</tr>
+{% endfor %}
+</table>

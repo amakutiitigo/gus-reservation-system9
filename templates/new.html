@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>新規予約</title>
+
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+
+<style>
+body {
+    margin: 0;
+    font-family: sans-serif;
+    background: #f5f5f5;
+}
+
+.container {
+    max-width: 600px;
+    margin: auto;
+    padding: 10px;
+}
+
+#calendar {
+    width: 100%;
+    min-height: 650px;
+    background: white;
+    border-radius: 10px;
+    padding: 5px;
+}
+
+/* 入力 */
+input, select, button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 8px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+button {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 6px;
+}
+
+/* 選択日 */
+.selected-day {
+    background: #ffe082 !important;
+}
+
+/* 休日 */
+.disabled-day {
+    background: #eee !important;
+    pointer-events: none;
+}
+
+/* 初期日 */
+.current-day {
+    background: #90caf9 !important;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>新規予約</h2>
+
+<div>消費者コード</div>
+<input type="text" value="{{ session.get('code') }}" readonly>
+
+<div id="calendar"></div>
+
+<div>予約時間</div>
+<select id="time_select"></select>
+
+<form method="POST" action="/confirm">
+<input type="hidden" name="date" id="date">
+<input type="hidden" name="time" id="time">
+
+<div>氏名</div>
+<input type="text" name="name" required>
+
+<div>電話番号</div>
+<input type="text" name="phone" required>
+
+<div>住所</div>
+<input type="text" name="address" required>
+
+<button type="submit">確認画面へ</button>
+</form>
+
+</div>
+
+<script>
+
+    let initDate = "";
+    let initTime = "";
+    let selectedDate = "";
+    let calendar;
+    
+    function isPastTime(dateStr, timeStr){
+
+        let now = new Date();
+        let today = now.toISOString().split("T")[0];
+
+        if(dateStr > today) return false;
+        if(dateStr < today) return true;
+
+        let [h,m] = timeStr.split(":").map(Number);
+
+        let t = new Date();
+        t.setHours(h);
+        t.setMinutes(m);
+
+        return t < now;
+    }
+
+    function formatRange(t){
+        if(!t || !t.includes(":")) return "";
+
+        let parts = t.split(":");
+        let h = Number(parts[0]);
+        let m = Number(parts[1]);
+
+        if(isNaN(h) || isNaN(m)) return "";
+
+        let end = new Date();
+        end.setHours(h);
+        end.setMinutes(m + 30);
+
+        let eh = String(end.getHours()).padStart(2,'0');
+        let em = String(end.getMinutes()).padStart(2,'0');
+
+        return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}～${eh}:${em}`;
+    }
+
+    let holidays = [];
+    
+    async function loadHolidays(){
+        const res = await fetch("https://holidays-jp.github.io/api/v1/date.json");
+        const data = await res.json();
+        holidays = Object.keys(data);
+    }
+    
+    function isHoliday(date){
+        let y = date.getFullYear();
+        let m = String(date.getMonth()+1).padStart(2,'0');
+        let d = String(date.getDate()).padStart(2,'0');
+        return holidays.includes(`${y}-${m}-${d}`) || date.getDay() === 0 || date.getDay() === 6;
+    }
+    
+    // 24時間後
+    const now = new Date();
+    const limit = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+
+    function isBeforeLimit(dateStr, timeStr){
+
+        let [h,m] = timeStr.split(":").map(Number);
+
+        let target = new Date(dateStr);
+        target.setHours(h);
+        target.setMinutes(m);
+        target.setSeconds(0);
+
+        return target < limit; // trueならNG
+    }
+
+
+    /* ★色データ生成 */
+    function buildEvents(){
+    
+        let events = [];
+    
+        let today = new Date();
+    
+        for(let i=0;i<90;i++){
+            let d = new Date();
+            d.setDate(today.getDate()+i);
+    
+            let y = d.getFullYear();
+            let m = String(d.getMonth()+1).padStart(2,'0');
+            let dd = String(d.getDate()).padStart(2,'0');
+            let str = `${y}-${m}-${dd}`;
+    
+            if(isHoliday(d)){
+                events.push({
+                    title: "",
+                    start: str,
+                    display: "background",
+                    color: "#eee"
+                });
+            }
+    
+            if(str === initDate){
+                events.push({
+                    title: "",
+                    start: str,
+                    display: "background",
+                    color: "#90caf9"
+                });
+            }
+    
+            if(str === selectedDate){
+                events.push({
+                    title: "",
+                    start: str,
+                    display: "background",
+                    color: "#ffe082"
+                });
+            }
+        }
+    
+        return events;
+    }
+    
+    /* 時間 */
+    function loadTimes(date){
+    
+        fetch('/get_times?date=' + date)
+        .then(res => res.json())
+        .then(data => {
+    
+            let select = document.getElementById("time_select");
+            select.innerHTML = "";
+    
+            let found = false;
+    
+            data.forEach(t => {
+
+                let opt = document.createElement("option");
+                opt.value = t;
+                opt.text = formatRange(t);
+
+                select.appendChild(opt);
+            });
+    
+            if(!found && initTime){
+                let opt = document.createElement("option");
+                opt.value = initTime;
+                opt.text = formatRange(initTime);
+                opt.selected = true;
+                select.appendChild(opt);
+            }
+    
+            document.getElementById("time").value = select.value;
+    
+            select.onchange = () => {
+                document.getElementById("time").value = select.value;
+            };
+        });
+    }
+    
+    document.addEventListener("DOMContentLoaded", async function(){
+    
+        await loadHolidays();
+    
+        const calendarEl = document.getElementById("calendar");
+    
+        calendar = new FullCalendar.Calendar(calendarEl, {
+    
+            initialView: "dayGridMonth",
+            locale: "ja",
+            height: 480,
+    
+            validRange: {
+                start: new Date().toISOString().split("T")[0]
+            },
+    
+            events: buildEvents(),
+    
+            dateClick: function(info){
+
+    let d = new Date(info.dateStr);
+
+    // ★追加：土日祝は選択不可
+    if(isHoliday(d)){
+        alert("土日祝は予約できません。");
+        return;
+    }
+
+    let selected = info.dateStr;
+
+    fetch('/get_times?date=' + selected)
+    .then(res => res.json())
+    .then(times => {
+
+        if(times.length === 0){
+            alert("この日は予約できません。");
+            return;
+        }
+
+        selectedDate = selected;
+        document.getElementById("date").value = selected;
+
+        loadTimes(selected);
+
+        calendar.removeAllEvents();
+        calendar.addEventSource(buildEvents());
+    });
+        }
+    });
+    
+        calendar.render();
+    });
+    
+    </script>
+
+</body>
+</html>
